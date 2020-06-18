@@ -16,10 +16,10 @@ app.get('/',(req,res)=>{
     const allQuestions = questions.map(q => ({
         id : q.id,
         title : q.title,
-        descritption : q.descritption,
-        answers : q.answers
+        description : q.description,
+        answers : q.answers.length
     }));
-    res.send(allQuestion);
+    res.send(allQuestions);
 })
 
 app.get('/:id',(req,res)=>{
@@ -34,28 +34,28 @@ app.get('/:id',(req,res)=>{
 })
 
 app.post('/',(req,res) => {
-    const {title,descritption} = req.body;
+    const {title,description} = req.body;
     const newQuestion = {
-        id : questions.length-1,
+        id : questions.length+1,
         title,
-        descritption,
+        description,
         answers : [] 
     }
     questions.push(newQuestion)
-    res.status(200).send;
+    res.status(200).send();
 })
 
 
-app.post('answer/:id',(req,res) => {
+app.post('/answer/:id',(req,res) => {
     const {answer} = req.body;
-    const question = questions.filter(q => (q.id === req.params.id));
+    const question = questions.filter(q => (q.id === parseInt(req.params.id)));
     if(question.length>1){
-        res.status(500).send;
+        res.status(500).send();
     }
     if(question.length==0){
-        res.status(404).send;
+        res.status(404).send();
     }
-    question[0].answer.push({
+    question[0].answers.push({
         answer,
     });
     res.status(200).send();
