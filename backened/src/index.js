@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const jwt = require('express-jwt');
+const jwksRsa = require('jwks-rsa');
 
 const app = express();
 
@@ -33,20 +35,41 @@ app.get('/:id',(req,res)=>{
     res.send(question[0]);
 })
 
-app.post('/',(req,res) => {
+
+//get the missing values by signing up and creating applcication autho.com
+const checkJwt = jwt({
+    secret: jwksRsa.expressJwtSecret({
+      cache: true,
+      rateLimit: true,
+      jwksRequestsPerMinute: 5,
+      jwksUri: `https://<DOMAIN_NAME>/.well-known/jwks.json`
+    }),
+
+    audience: '<CLIENT_ID>',
+    issuer: `https://<DOMAIN_NAME>/`,
+    algorithms: ['RS256']
+  });
+
+
+
+
+
+
+app.post('/',checkJwt,(req,res) => {
     const {title,description} = req.body;
     const newQuestion = {
         id : questions.length+1,
         title,
         description,
-        answers : [] 
+        answers : [],
+        author : req.user.name 
     }
     questions.push(newQuestion)
     res.status(200).send();
 })
 
 
-app.post('/answer/:id',(req,res) => {
+app.post('/answer/:id',checkJwt,(req,res) => {
     const {answer} = req.body;
     const question = questions.filter(q => (q.id === parseInt(req.params.id)));
     if(question.length>1){
@@ -57,6 +80,7 @@ app.post('/answer/:id',(req,res) => {
     }
     question[0].answers.push({
         answer,
+        author : req.user.name
     });
     res.status(200).send();
 })
